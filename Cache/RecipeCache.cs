@@ -66,7 +66,6 @@ namespace RecipeShuffler.Cache
         /// <summary>
         ///     Updates a <see cref="Recipes"/> collection externally.
         /// </summary>
-        /// <param name="recipes"></param>
         public virtual void SetRecipes(IEnumerable<Recipe> recipes)
         {
             Recipes.Clear();
