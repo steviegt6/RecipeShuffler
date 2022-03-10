@@ -23,7 +23,7 @@ namespace RecipeShuffler.Cache
         ///     A readonly collection of cached recipes.
         /// </summary>
         public ReadOnlyCollection<Recipe> ReadonlyRecipes => Recipes.AsReadOnly();
-
+        
         /// <summary>
         ///     Verifies the integrity of a recipe cache against another recipe cache.
         /// </summary>
@@ -36,47 +36,27 @@ namespace RecipeShuffler.Cache
         {
             Random rand = new(seed);
 
-            Item[] results = Recipes.Select(x => x.createItem).OrderBy(x => rand.Next()).ToArray();
+            Item[] results = Recipes
+                // .Where(x => x.createItem is not null && x.createItem.type != ItemID.None)
+                .Select(x => x.createItem)
+                .OrderBy(x => rand.Next())
+                .ToArray();
 
-            Type recipeLoader = typeof(RecipeLoader);
-            FieldInfo setupRecipes = recipeLoader.GetField(
+            FieldInfo setupRecipes = typeof(RecipeLoader).GetField(
                 "setupRecipes",
                 BindingFlags.Static | BindingFlags.NonPublic
+            )!;
+            MethodInfo memberwiseClone = typeof(Recipe).GetMethod(
+                "MemberwiseClone",
+                BindingFlags.Instance | BindingFlags.NonPublic
             )!;
             
             setupRecipes.SetValue(null, true);
             
             for (int i = 0; i < Recipes.Count; i++)
             {
-                // De-referencing the Recipe object as to not interfere with our Vanilla cache!
-                Recipe res = Recipes[i];
-
-                Recipe recipe = ModContent.GetInstance<RecipeShuffler>().CreateRecipe(
-                    results[i].type,
-                    results[i].stack
-                ).AddCondition(res.Conditions);
-
-                // Recipe *groups* will be added as ingredients in the acceptedIngredients step.
-                // This just ensures we register the groups here for handling.
-                // AddIngredient actually handles the iconic item and item stack; recipe group
-                // iconic items are registered to Recipe.RequiredItem.
-                foreach (int acceptedGroup in res.acceptedGroups)
-                    recipe.acceptedGroups.Add(acceptedGroup);
-
-                foreach (Item requiredItem in res.requiredItem)
-                    recipe.AddIngredient(requiredItem.type, requiredItem.stack);
-
-                foreach (int requiredTile in res.requiredTile)
-                    recipe.AddTile(requiredTile);
-                
-                // Scary!!!
-                if (recipe.createItem is null || recipe.createItem.type == ItemID.None)
-                {
-                    Item dirt = new();
-                    dirt.SetDefaults(ItemID.DirtBlock);
-                    recipe.createItem = dirt;
-                }
-                
+                Recipe recipe = (Recipe) memberwiseClone.Invoke(Recipes[i], null)!;
+                recipe.createItem = results[i];
                 Recipes[i] = recipe;
             }
             
@@ -90,7 +70,8 @@ namespace RecipeShuffler.Cache
         public virtual void SetRecipes(IEnumerable<Recipe> recipes)
         {
             Recipes.Clear();
-            Recipes.AddRange(recipes);
+            // ReSharper disable once ConditionIsAlwaysTrueOrFalse
+            Recipes.AddRange(recipes.Where(x => x.createItem != null && x.createItem.type != ItemID.None));
         }
     }
 }

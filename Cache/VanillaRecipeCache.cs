@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Terraria;
+using Terraria.ID;
 
 namespace RecipeShuffler.Cache
 {
@@ -9,10 +10,11 @@ namespace RecipeShuffler.Cache
     {
         public VanillaRecipeCache()
         {
-            foreach (Recipe recipe in Main.recipe.Where(x => x is not null))
-                Recipes.Add(recipe);
+            foreach (Recipe recipe in Main.recipe.Where(
+                         x => x?.createItem != null && x.createItem.type != ItemID.None)
+                    ) Recipes.Add(recipe);
         }
-        
+
         public override void ShuffleRecipes(int seed) =>
             throw new InvalidOperationException("Cannot shuffle a vanilla recipe cache.");
 
@@ -22,7 +24,10 @@ namespace RecipeShuffler.Cache
         public override void SetRecipes(IEnumerable<Recipe> recipes)
         {
             Recipe.numRecipes = 0;
+            Recipe.maxRecipes = 50;
             Main.recipe = new Recipe[Recipe.maxRecipes];
+            Main.availableRecipe = new int[Recipe.maxRecipes];
+            Main.availableRecipeY = new float[Recipe.maxRecipes];
 
             List<Recipe> list = recipes.ToList();
 
