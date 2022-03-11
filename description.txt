@@ -1,3 +1,9 @@
 Shuffles recipe results. Results are shuffled based on world seed, making this multiplayer-compatible and persistent between playthroughs (as long as no mods are added or removed after playing in the world).
 
 Made as a mod commission for mars#3486, thanks!
+
+v1.0.1
+ - Added a shuffling blacklist. You can lock some recipes to their vanilla versions.
+
+v1.0.0
+ - Initial release

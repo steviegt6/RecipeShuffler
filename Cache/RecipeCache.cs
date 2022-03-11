@@ -6,6 +6,7 @@ using System.Reflection;
 using Terraria;
 using Terraria.ModLoader;
 using Terraria.ID;
+using Terraria.ModLoader.Config;
 
 namespace RecipeShuffler.Cache
 {
@@ -34,9 +35,14 @@ namespace RecipeShuffler.Cache
         /// </summary>
         public virtual void ShuffleRecipes(int seed)
         {
+            static bool Allow(Recipe r) => ShufflerConfig.Get.BlacklistedItems.All(
+                item => item.Type != r.createItem.type
+            );
+            
             Random rand = new(seed);
 
-            Item[] results = Recipes
+            Recipe[] whitelist = Recipes.Where(Allow).ToArray();
+            Item[] results = whitelist
                 // .Where(x => x.createItem is not null && x.createItem.type != ItemID.None)
                 .Select(x => x.createItem)
                 .OrderBy(x => rand.Next())
@@ -53,13 +59,17 @@ namespace RecipeShuffler.Cache
             
             setupRecipes.SetValue(null, true);
             
-            for (int i = 0; i < Recipes.Count; i++)
+            for (int i = 0; i < whitelist.Length; i++)
             {
-                Recipe recipe = (Recipe) memberwiseClone.Invoke(Recipes[i], null)!;
+                Recipe recipe = (Recipe) memberwiseClone.Invoke(whitelist[i], null)!;
                 recipe.createItem = results[i];
-                Recipes[i] = recipe;
+                whitelist[i] = recipe;
             }
-            
+
+            List<Recipe> shuffled = whitelist.ToList();
+            shuffled.AddRange(Recipes.Where(x => !Allow(x)));
+            SetRecipes(shuffled);
+
             setupRecipes.SetValue(null, false);
         }
 

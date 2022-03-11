@@ -1,4 +1,4 @@
 displayName = Recipe Shuffler
 author = Tomat
-version = 1.0.0.1
+version = 1.0.1
 homepage = https://discord.gg/Y8bvvqyFQw
