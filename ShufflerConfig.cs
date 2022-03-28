@@ -14,6 +14,6 @@ namespace RecipeShuffler
         [Header("Suffling Restrictions")]
         [Label("Shuffler Blacklist")]
         [Tooltip("Recipe results to filter out from shuffling.")]
-        public List<ItemDefinition> BlacklistedItems { get; set; }
+        public List<ItemDefinition> BlacklistedItems { get; set; } = new();
     }
 }
