@@ -23,16 +23,16 @@ namespace RecipeShuffler.Cache
         /// </summary>
         public override void SetRecipes(IEnumerable<Recipe> recipes)
         {
-            Recipe.numRecipes = 0;
-            Recipe.maxRecipes = 50;
+            List<Recipe> list = recipes.ToList();
+            Recipe.numRecipes = list.Count;
+            Recipe.maxRecipes = list.Count;
             Main.recipe = new Recipe[Recipe.maxRecipes];
             Main.availableRecipe = new int[Recipe.maxRecipes];
             Main.availableRecipeY = new float[Recipe.maxRecipes];
-
-            List<Recipe> list = recipes.ToList();
-
-            foreach (Recipe recipe in list)
-                recipe.Register();
+            
+            for (int i = 0; i < list.Count; i++) {
+                Main.recipe[i] = list[i];
+            }
         }
     }
 }
